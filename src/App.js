@@ -5,21 +5,8 @@ import Listitem from './components/Listitem';
 import Itemform from './components/Itemform';
 import { useState } from 'react';
 import { jsPDF } from 'jspdf'
+import toast, { Toaster } from 'react-hot-toast';
 
-const listItems = [
-  {
-    id: v4(),
-    item: 'Bags',
-    quantity: 2,
-    price: 10,
-  },
-  {
-    id: v4(),
-    item: 'Jeans',
-    quantity: 5,
-    price: 5,
-  }
-]
 
 function App() {
 
@@ -46,6 +33,7 @@ function App() {
         price: price,
       }
     ]))
+    toast.success("Item added successfully");
   }
 
   const downloadHandler = () => {
@@ -54,39 +42,47 @@ function App() {
     items.forEach((item, index) => {
       const possY = 30 + index * 30;
       doc.text(`
-        Item : ${item.item},
-            Quantity : ${item.quantity},
-            Price : ${item.price},
-            Total Amount : ${item.quantity * item.price}
+      Item : ${item.item},
+      Quantity : ${item.quantity},
+      Price : ${item.price},
+      Total Amount : ${item.quantity * item.price}
       `, 20, possY)
-    })
+    }, 20, 30 + items.length * 30)
+    doc.text(`
+    Total Amount :$${items.reduce((acc, item) => { return acc + (item.price * item.quantity) }, 0)}`, 20, 30 + items.length
+    * 30)
     doc.save("Invoice.pdf");
+    toast.success("Invoice Saved successfully");
+
   }
 
   const DeleteHandler = (itemId) => {
     setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+    toast.success("Item Deleted successfully");
   }
   return (
-    <div className='w-[100%] md:w-[50%] flex flex-col px-5 justify-center mx-auto py-10 shadow-md space-y-10'>
-      <Header />
-      <Itemform onSubmit={submitHandler} />
-      <h1 className='text-2xl font-medium'>Item List</h1>
-      {
-        items.map((item, index) => (
-          <Listitem
-            id={item.id}
-            item={item.item}
-            quantity={item.quantity}
-            price={item.price}
-            onDelete={DeleteHandler}
-          />
-        ))
-      }
-      <button className='bg-red-500 text-white py-1 w-20 rounded-sm' onClick={downloadHandler}>
-        Download
-      </button>
-      <h1>Total Amount : {items.reduce((acc, item) => { return acc + (item.price * item.quantity) }, 0)}</h1>
-    </div>
+    <>
+      <Toaster />
+      <div className='w-[100%] md:w-[50%] flex flex-col px-5 justify-center mx-auto py-10 shadow-md space-y-10'>
+        <Header />
+        <Itemform onSubmit={submitHandler} />
+        <h1 className='text-2xl font-medium'>Item List</h1>
+        {
+          items.map((item, index) => (
+            <Listitem
+              id={item.id}
+              item={item.item}
+              quantity={item.quantity}
+              price={item.price}
+              onDelete={DeleteHandler}
+            />
+          ))
+        }
+        <button className='bg-red-500 text-white py-1 w-20 rounded-sm' onClick={downloadHandler}>
+          Download
+        </button>
+        <h1>Total Amount : ${items.reduce((acc, item) => { return acc + (item.price * item.quantity) }, 0)}</h1>
+      </div></>
   );
 }
 
